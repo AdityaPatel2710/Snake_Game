@@ -48,19 +48,20 @@ body {
     height: var(--cell-size);
     margin: 0;
     padding: 0;
+    position: absolute;
+    animation: blink 1s linear infinite;
 }
 
 @keyframes blink {
-    0% {opacity: 1;}
-    50% {opacity: 0;}
-    100% {opacity: 1;}
+    0% {scale: 1;}
+    50% {scale: 1.25;}
+    100% {scale: 1;}
 }
 
 .food::before {
     content: '🍎';
-    width: var(--cell-size);
-    height: var(--cell-size);
-    animation: blink 1s linear infinite;
+    width: 100%;
+    height: 100%;
 }
 
 .snake {
@@ -68,4 +69,5 @@ body {
     height: var(--cell-size);
     background-color: chartreuse;
     border-radius: 5px;
+    position: absolute;
 }
