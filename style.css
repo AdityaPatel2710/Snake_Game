@@ -1,3 +1,7 @@
+:root {
+    --cell-size: 20px;
+}
+
 html {
     box-sizing: border-box;
 }
@@ -37,4 +41,31 @@ body {
     font-weight: bold;
     width: 6%;
     box-shadow: rgba(3, 102, 214, 0.3) 0px 0px 0px 3px;
+}
+
+.food {
+    width: var(--cell-size);
+    height: var(--cell-size);
+    margin: 0;
+    padding: 0;
+}
+
+@keyframes blink {
+    0% {opacity: 1;}
+    50% {opacity: 0;}
+    100% {opacity: 1;}
+}
+
+.food::before {
+    content: '🍎';
+    width: var(--cell-size);
+    height: var(--cell-size);
+    animation: blink 1s linear infinite;
+}
+
+.snake {
+    width: var(--cell-size);
+    height: var(--cell-size);
+    background-color: chartreuse;
+    border-radius: 5px;
 }
