@@ -15,6 +15,7 @@ let highestScore = 0;
 let arenaSize = gameArena.offsetWidth - (2 * borderSize);
 let dx = 1;
 let dy = 0;
+let speed = 200;
 let gameStarted = false;
 let Y = Math.floor(arenaSize / (cellSize*2));  // center cordinate in Y-axis
 let maxPos = (arenaSize/cellSize) - 1;
@@ -23,8 +24,9 @@ let food = {x:maxPos+1, y:maxPos+1}  // initializing so we can use before callin
 let intervalId, foodElement;
 
 startBtn.onclick = () => {
-    startBtn.style.visibility = 'hidden';
     music.pause();
+    gameStart.play();
+    startBtn.style.visibility = 'hidden';
     runTheGame();
     window.onkeydown = changeDirection;
 }
@@ -32,8 +34,9 @@ startBtn.onclick = () => {
 let foodEating = new Audio('sounds/music_food.mp3');
 let snakeMove = new Audio('sounds/music_move.mp3');
 let gameOver = new Audio('sounds/music_gameover.mp3');
+let gameStart = new Audio('sounds/music_gamestart.mp3');
 let music = new Audio('sounds/music_music.mp3');
-music.volume = 0.5;
+music.volume = 0.25;
 music.play();
 
 
@@ -100,6 +103,14 @@ function updateSnake() {
         highestScore = Math.max(score, highestScore);
         foodElement.remove();
         drawFood();
+
+        if(score%2 == 0) {
+            drawSnake();
+            updateScoreBoard();
+            clearInterval(intervalId);
+            if(speed > 50) speed -= 5;
+            intervalId = gameLoop();
+        }
     }
     else snake.pop();  // removes from end
 }
@@ -154,17 +165,19 @@ function changeDirection(event) {
 
 
 function gameLoop() {
-    updateSnake();
-    drawSnake();
-    if(isGameOver()) {
-        gameOver.play();
-        gameStarted = false;
-        alert(`Game Over! \nYour Score: ${score} \nHighest Score: ${highestScore}`);
-        clearInterval(intervalId);
-        reloadTheGame();
-        return;
-    }
-    updateScoreBoard();
+    return setInterval (() => {
+        updateSnake();
+        drawSnake();
+        if(isGameOver()) {
+            gameOver.play();
+            gameStarted = false;
+            alert(`Game Over! \nYour Score: ${score} \nHighest Score: ${highestScore}`);
+            clearInterval(intervalId);
+            reloadTheGame();
+            return;
+        }
+        updateScoreBoard();
+    }, speed);
 }
 
 
@@ -172,7 +185,7 @@ function runTheGame() {
     gameStarted = true;
     drawSnake();
 
-    intervalId = setInterval(gameLoop, 200);
+    intervalId = gameLoop();
 
     setTimeout(() => {
         drawFood();
@@ -181,6 +194,8 @@ function runTheGame() {
 
 
 function reloadTheGame() {
+    music.load();
+    music.play();
     gameArena.innerHTML = '';
     score = 0;
     updateScoreBoard();
@@ -188,7 +203,6 @@ function reloadTheGame() {
     food = {x:maxPos+1, y:maxPos+1};
     dx = 1;
     dy = 0;
-    music.load();
-    music.play();
+    speed = 200;
     startBtn.style.visibility = 'visible';
 }
