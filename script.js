@@ -4,16 +4,18 @@ console.log("Connected Successfully!");
 // <----- Initializing variables & events -----> //
 
 let gameArena = document.getElementById('game-arena');
-let scoreBoard = document.getElementById('score');
+let currentScoreBoard = document.getElementById('c-score');
+let highestScoreBoard = document.getElementById('h-score');
 let startBtn = document.getElementById('start-btn');
 
 let borderSize = 10;
 let cellSize = 20;
 let score = 0;
-let gameStarted = false;
+let highestScore = 0;
 let arenaSize = gameArena.offsetWidth - (2 * borderSize);
 let dx = 1;
 let dy = 0;
+let gameStarted = false;
 let Y = Math.floor(arenaSize / (cellSize*2));  // center cordinate in Y-axis
 let maxPos = (arenaSize/cellSize) - 1;
 let snake = [{x:5, y:Y}, {x:4, y:Y}, {x:3, y:Y}];
@@ -22,16 +24,24 @@ let intervalId, foodElement;
 
 startBtn.onclick = () => {
     startBtn.style.visibility = 'hidden';
-    gameStarted = true;
+    music.pause();
     runTheGame();
     window.onkeydown = changeDirection;
 }
+
+let foodEating = new Audio('sounds/music_food.mp3');
+let snakeMove = new Audio('sounds/music_move.mp3');
+let gameOver = new Audio('sounds/music_gameover.mp3');
+let music = new Audio('sounds/music_music.mp3');
+music.volume = 0.5;
+music.play();
 
 
 // <----- Functions -----> //
 
 function updateScoreBoard() {
-    scoreBoard.textContent = `${score}`;
+    currentScoreBoard.textContent = `${score}`;
+    highestScoreBoard.textContent = `${highestScore}`;
 }
 
 
@@ -83,9 +93,11 @@ function updateSnake() {
     // console.log("update:", newHead);
 
     if((newHead.x == food.x) && (newHead.y == food.y)) {
-        // make sound of eating
+        foodEating.currentTime = 0;
+        foodEating.play();
         //change the speed
         score += 1;
+        highestScore = Math.max(score, highestScore);
         foodElement.remove();
         drawFood();
     }
@@ -103,13 +115,14 @@ function isGameOver() {
     let isHittingLeftWall = snake[0].x < 0;
     let isHittingRightWall = snake[0].x > maxPos;
     let isHittingTopWall = snake[0].y < 0;
-    let isHittingDownWall = snake[0] > maxPos;
+    let isHittingDownWall = snake[0].y > maxPos;
 
     return isHittingLeftWall || isHittingRightWall || isHittingTopWall || isHittingDownWall;
 }
 
 
 function changeDirection(event) {
+    if(!gameStarted) return;
     let keyPressed = event.code;
     
     let notGoingUp = (dy !== -1);
@@ -117,27 +130,65 @@ function changeDirection(event) {
     let notGoingLeft = (dx !== -1);
     let notGoingRight = (dx !== 1);
 
-    if((keyPressed == "ArrowUp") && notGoingDown) {dx = 0; dy = -1;}
-    else if((keyPressed == "ArrowDown") && notGoingUp) {dx = 0; dy = 1;}
-    else if((keyPressed == "ArrowLeft") && notGoingRight) {dx = -1; dy = 0;}
-    else if((keyPressed == "ArrowRight") && notGoingLeft) {dx = 1; dy = 0;}
+    if((keyPressed == "ArrowUp") && notGoingDown) {
+        snakeMove.currentTime = 0;
+        snakeMove.play();
+        dx = 0; dy = -1;
+    }
+    else if((keyPressed == "ArrowDown") && notGoingUp) {
+        snakeMove.currentTime = 0;
+        snakeMove.play();
+        dx = 0; dy = 1;
+    }
+    else if((keyPressed == "ArrowLeft") && notGoingRight) {
+        snakeMove.currentTime = 0;
+        snakeMove.play();
+        dx = -1; dy = 0;
+    }
+    else if((keyPressed == "ArrowRight") && notGoingLeft) {
+        snakeMove.currentTime = 0;
+        snakeMove.play();
+        dx = 1; dy = 0;
+    }
+}
+
+
+function gameLoop() {
+    updateSnake();
+    drawSnake();
+    if(isGameOver()) {
+        gameOver.play();
+        gameStarted = false;
+        alert(`Game Over! \nYour Score: ${score} \nHighest Score: ${highestScore}`);
+        clearInterval(intervalId);
+        reloadTheGame();
+        return;
+    }
+    updateScoreBoard();
 }
 
 
 function runTheGame() {
-    intervalId = setInterval(() => {
-        if(isGameOver()) {
-            // what to do after game over
-            alert('Game Over!');
-            clearInterval(intervalId);
-            window.location.reload();
-        }
-        drawSnake();
-        updateSnake();
-        updateScoreBoard();
-    }, 200);
+    gameStarted = true;
+    drawSnake();
+
+    intervalId = setInterval(gameLoop, 200);
 
     setTimeout(() => {
         drawFood();
     }, 2000);
+}
+
+
+function reloadTheGame() {
+    gameArena.innerHTML = '';
+    score = 0;
+    updateScoreBoard();
+    snake = [{x:5, y:Y}, {x:4, y:Y}, {x:3, y:Y}];
+    food = {x:maxPos+1, y:maxPos+1};
+    dx = 1;
+    dy = 0;
+    music.load();
+    music.play();
+    startBtn.style.visibility = 'visible';
 }
